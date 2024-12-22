@@ -8,12 +8,12 @@
         android:enabled="true"
         android:icon="@drawable/ic_home_"
         android:title="홈"
-        android:contentDescription="홈 화면으로 이동" />
+        android:contentDescription="홈 화면으로 이동하기" />
 
     <item
-        android:id="@+id/nav_camera"
-        android:icon="@drawable/ic_camera"
-        android:title="카메라"
-        android:contentDescription="카메라 실행" />
+        android:id="@+id/nav_AddPlant"
+        android:icon="@drawable/ic_add"
+        android:title="식물 등록"
+        android:contentDescription="식물 등록하기" />
 
 </menu>

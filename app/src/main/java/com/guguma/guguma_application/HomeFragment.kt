@@ -1,5 +1,6 @@
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,16 +31,21 @@ class HomeFragment : Fragment() {
         ViewModelProvider(this, factory).get(PlantViewModel::class.java)
     }
 
+
     private val addPlantLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val data = result.data
             val plantId = data?.getLongExtra("plantId", -1L) ?: -1L
-            val newPlantName = data?.getStringExtra("newPlantName")
-            val newPlantImageUrl = data?.getStringExtra("newPlantImageUrl")
+            val plantNickname = data?.getStringExtra("plantNickname")
+            val plantImageUrl = data?.getStringExtra("plantImageUrl")
+            Log.d("에스파에스파", "Received Data - ID: $plantId, Nickname: $plantNickname, ImageUrl: $plantImageUrl")
 
-            if (plantId != -1L && !newPlantName.isNullOrEmpty() && !newPlantImageUrl.isNullOrEmpty()) {
-                val newPlant = PlantDto(plantId, newPlantName, newPlantImageUrl)
-                plantViewModel.addPlant(newPlant) // ViewModel에 데이터 추가
+            if (plantId != -1L && !plantNickname.isNullOrEmpty() && !plantImageUrl.isNullOrEmpty()) {
+                val newPlant = PlantDto(plantId, plantNickname, plantImageUrl)
+                plantViewModel.addPlant(newPlant)
+                Log.d("HomeFragment", "Received Data - Nickname: $plantNickname, ImageUrl: $plantImageUrl")
+            } else {
+                Log.e("HomeFragment", "Failed to receive valid data")
             }
         }
     }
@@ -57,12 +63,14 @@ class HomeFragment : Fragment() {
         return binding.root
     }
 
+
     override fun onResume() {
         super.onResume()
         plantViewModel.fetchPlantsFromServer() // 서버에서 최신 데이터를 가져옴
     }
 
     private fun updateUI(plantList: MutableList<PlantDto>) {
+        Log.d("HomeFragment", "Updating UI with 위플래시: $plantList")
         val adapter = binding.plantListView.adapter as? PlantAdapter
         adapter?.updateData(plantList)
     }

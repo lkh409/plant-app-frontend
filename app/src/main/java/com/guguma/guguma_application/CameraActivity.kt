@@ -38,10 +38,6 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var imageCapture: ImageCapture
     private lateinit var cameraExecutor: ExecutorService
 
-    private val handler = Handler(Looper.getMainLooper())
-    private val detectInterval = 4000L
-    private var isDetecting = false
-
     private val client = OkHttpClient()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,11 +51,8 @@ class CameraActivity : AppCompatActivity() {
 
         findViewById<ImageButton>(R.id.close_button).setOnClickListener { finish() }
         findViewById<ImageButton>(R.id.shutter_button).setOnClickListener {
-            stopDetectLoop()
             takePicture()
         }
-
-        startDetectLoop()
     }
 
     private fun checkCameraPermission() {
@@ -92,36 +85,31 @@ class CameraActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    private fun startDetectLoop() {
-        if (!isDetecting) {
-            isDetecting = true
-            handler.post(object : Runnable {
-                override fun run() {
-                    if (isDetecting) {
-                        takePictureForDetect()
-                        handler.postDelayed(this, detectInterval)
-                    }
-                }
-            })
-        }
-    }
-
-    private fun stopDetectLoop() {
-        isDetecting = false
-        handler.removeCallbacksAndMessages(null)
-    }
-
     private fun takePicture() {
         if (!::imageCapture.isInitialized) return
 
         imageCapture.takePicture(cameraExecutor, object : ImageCapture.OnImageCapturedCallback() {
             override fun onCaptureSuccess(imageProxy: ImageProxy) {
-                val bitmap = imageProxy.toBitmap()
+                val originalBitmap = imageProxy.toBitmap()
+                val rotationDegrees = imageProxy.imageInfo.rotationDegrees  // 회전 정보 가져오기
                 imageProxy.close()
 
+                // Bitmap 해상도 축소 및 회전 적용
+                val rotatedBitmap = originalBitmap?.let {
+                    val matrix = android.graphics.Matrix()
+                    matrix.postRotate(rotationDegrees.toFloat())  // 회전 정보 적용
+                    Bitmap.createBitmap(it, 0, 0, it.width, it.height, matrix, true)
+                }
+
+                val bitmap = rotatedBitmap?.let {
+                    val newWidth = (it.width * 0.5).toInt()  // 너비의 80%
+                    val newHeight = (it.height * 0.5).toInt()  // 높이의 80%
+                    Bitmap.createScaledBitmap(it, newWidth, newHeight, true)
+                }
+
                 bitmap?.let {
-                    stopDetectLoop()
-                    runOnUiThread { showCompletedDialog(it) }
+//                    runOnUiThread { showCompletedDialog(it) }
+                    runOnUiThread { detectImage(it) }
                 }
             }
 
@@ -131,18 +119,6 @@ class CameraActivity : AppCompatActivity() {
         })
     }
 
-    private fun takePictureForDetect() {
-        if (!::imageCapture.isInitialized) return
-
-        imageCapture.takePicture(cameraExecutor, object : ImageCapture.OnImageCapturedCallback() {
-            override fun onCaptureSuccess(imageProxy: ImageProxy) {
-                val bitmap = imageProxy.toBitmap()
-                imageProxy.close()
-
-                bitmap?.let { detectImage(it) }
-            }
-        })
-    }
 
     private fun showCompletedDialog(bitmap: Bitmap) {
         val dialog = AlertDialog.Builder(this)
@@ -157,7 +133,7 @@ class CameraActivity : AppCompatActivity() {
 
     private fun detectImage(bitmap: Bitmap) {
         val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream)
         val byteArray = stream.toByteArray()
 
         val requestBody = MultipartBody.Builder()
@@ -172,20 +148,19 @@ class CameraActivity : AppCompatActivity() {
 
         client.newCall(request).enqueue(object : Callback {
             override fun onResponse(call: Call, response: Response) {
-                val responseBody = response.body?.string()
-                if (!responseBody.isNullOrEmpty()) {
+                response.use { res ->
+                    if (!res.isSuccessful) {
+                        runOnUiThread { showWarningDialog("서버 오류: ${res.message}") }
+                        return
+                    }
+
+                    val responseBody = res.body?.string() ?: return
                     val jsonResponse = JSONObject(responseBody)
                     val message = jsonResponse.optString("message", "식별 실패")
 
-                    // 메시지에 "다시 촬영해주세요"가 포함된 경우에만 안내 표시
-                    if (message.contains("다시 촬영해주세요")) {
-                        runOnUiThread {
-                            showWarningDialog(message) // 다이얼로그로 안내 표시
-                        }
+                    runOnUiThread {
+                        handleServerMessage(message, bitmap) // 서버로부터의 응답 처리
                     }
-                    runOnUiThread { handleServerMessage(message, bitmap) }
-                } else {
-                    runOnUiThread { showWarningDialog("서버 응답이 없습니다.") }
                 }
             }
 
@@ -204,12 +179,12 @@ class CameraActivity : AppCompatActivity() {
             return
         }
         val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream)
         val byteArray = stream.toByteArray()
 
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
-            .addFormDataPart("file", "uploaded_image.jpg", byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull()))
+            .addFormDataPart("image", "image.jpg", byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull()))
             .addFormDataPart("userUuid", userUuid)
             .build()
 
@@ -228,13 +203,15 @@ class CameraActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     val responseBody = response.body?.string()
-                    val plantId = JSONObject(responseBody ?: "{}").optInt("id", -1)
+                    val jsonResponse = JSONObject(responseBody ?: "{}")
+
+                    val name = jsonResponse.optString("name", "Unknown") ?: "Unknown"
+                    val status = jsonResponse.optString("status", "No status available") ?: "No status available"
+                    val remedy = jsonResponse.optString("remedy", "No remedy available") ?: "No remedy available"
+                    val imageUrl = jsonResponse.optString("imageUrl", "") ?: ""
+
                     runOnUiThread {
-                        if (plantId != -1) {
-                            moveToDetailPlantActivity(plantId)
-                        } else {
-                            Toast.makeText(this@CameraActivity, "식물 ID를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
-                        }
+                        moveToDetailPlantActivity(name, status, remedy, imageUrl)
                     }
                 } else {
                     runOnUiThread {
@@ -245,16 +222,18 @@ class CameraActivity : AppCompatActivity() {
         })
     }
 
-    private fun moveToDetailPlantActivity(plantId: Int) {
+    private fun moveToDetailPlantActivity(name: String, status: String, remedy: String, imageUrl: String) {
         val intent = Intent(this, DetailPlantActivity::class.java).apply {
-            putExtra("plantId", plantId)
+            putExtra("plantName", name)
+            putExtra("plantStatus", status)
+            putExtra("plantRemedy", remedy)
+            putExtra("plantImageUrl", imageUrl)
         }
         startActivity(intent)
         finish()
     }
 
     private fun handleServerMessage(message: String, bitmap: Bitmap) {
-        stopDetectLoop()
         when (message) {
             "식물을 등록하시겠습니까?" -> showCompletedDialog(bitmap)
             else -> showWarningDialog(message)
@@ -264,7 +243,9 @@ class CameraActivity : AppCompatActivity() {
     private fun showWarningDialog(message: String) {
         AlertDialog.Builder(this)
             .setMessage(message)
-            .setPositiveButton("확인") { _, _ -> startDetectLoop() }
+            .setPositiveButton("확인") { dialog, _ ->
+                dialog.dismiss() // 다이얼로그를 닫습니다
+            }
             .setCancelable(false)
             .show()
     }
@@ -287,8 +268,8 @@ class CameraActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        stopDetectLoop()
         ProcessCameraProvider.getInstance(this).get().unbindAll()
+
 
     }
 }

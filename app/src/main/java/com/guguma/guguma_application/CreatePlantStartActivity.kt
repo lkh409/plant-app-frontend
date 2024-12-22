@@ -26,6 +26,8 @@ import okhttp3.Response
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import com.guguma.guguma_application.CameraActivity
+import org.json.JSONObject
+
 class CreatePlantStartActivity : AppCompatActivity() {
 
     private val STORAGE_PERMISSION_CODE = 1001 // 권한 코드 정의
@@ -53,10 +55,10 @@ class CreatePlantStartActivity : AppCompatActivity() {
             checkPermissionAndOpenGallery()
         }
 
-        val picAddButton: Button = findViewById(R.id.picAddBtn)
+        val takePic: Button = findViewById(R.id.TakePicBtn)
 
         // 버튼 클릭 리스너 설정
-        picAddButton.setOnClickListener {
+        takePic.setOnClickListener {
             // 사진 촬영을 위한 액티비티로 이동
             val intent = Intent(this, CameraActivity::class.java)
             startActivity(intent)
@@ -133,18 +135,53 @@ class CreatePlantStartActivity : AppCompatActivity() {
         pickImageLauncher.launch(intent)
     }
 
-    // 이미지 서버 업로드 함수
     private fun uploadImageToServer(imageUri: Uri) {
-        val compressedBytes = compressImageToByteArray(imageUri, 1024 * 1024) // 1MB 이하로 압축
+        val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        val userUuid = prefs.getString("userUuid", null)
 
-        if (compressedBytes != null) {
+        if (userUuid.isNullOrEmpty()) {
+            Toast.makeText(this, "UUID를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            val inputStream = contentResolver.openInputStream(imageUri) ?: return
+            val originalBitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream.close()
+
+            // Bitmap 회전 및 해상도 조정
+            val matrix = android.graphics.Matrix().apply {
+                postRotate(90f)  // 90도 회전
+            }
+
+            val rotatedBitmap = Bitmap.createBitmap(
+                originalBitmap,
+                0, 0,
+                originalBitmap.width,
+                originalBitmap.height,
+                matrix,
+                true
+            )
+
+
+            // 이미지 크기를 80%로 조정
+            val resizedBitmap = Bitmap.createScaledBitmap(
+                rotatedBitmap,
+                (rotatedBitmap.width * 0.5).toInt(),
+                (rotatedBitmap.height * 0.5).toInt(),
+                true
+            )
+
+            // Bitmap을 ByteArray로 변환
+            val stream = ByteArrayOutputStream()
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+            val byteArray = stream.toByteArray()
+
+            // 서버로 보낼 준비
             val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart(
-                    "image",
-                    "image.jpg",
-                    compressedBytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
-                )
+                .addFormDataPart("image", "image.jpg", byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull()))
+                .addFormDataPart("userUuid", userUuid)
                 .build()
 
             val request = Request.Builder()
@@ -152,65 +189,81 @@ class CreatePlantStartActivity : AppCompatActivity() {
                 .post(requestBody)
                 .build()
 
+            // 서버에 요청을 비동기로 보내고 응답 처리
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     runOnUiThread {
-                        Toast.makeText(
-                            this@CreatePlantStartActivity,
-                            "이미지 업로드 실패: ${e.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(this@CreatePlantStartActivity, "이미지 업로드 실패: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onResponse(call: Call, response: Response) {
                     if (response.isSuccessful) {
-                        val fileUrl = response.body?.string().orEmpty()
+                        val responseBody = response.body?.string()
+                        val jsonResponse = JSONObject(responseBody ?: "{}")
+
+                        val name = jsonResponse.optString("name", "Unknown") ?: "Unknown"
+                        val status = jsonResponse.optString("status", "No status available") ?: "No status available"
+                        val remedy = jsonResponse.optString("remedy", "No remedy available") ?: "No remedy available"
+                        val imageUrl = jsonResponse.optString("imageUrl", "") ?: ""
+
                         runOnUiThread {
-                            val intent =
-                                Intent(this@CreatePlantStartActivity, DetailPlantActivity::class.java).apply {
-                                    putExtra("imageUrl", fileUrl) // 업로드된 이미지 URL 전달
-                                }
-                            startActivity(intent)
+                            moveToDetailPlantActivity(name, status, remedy, imageUrl)
                         }
                     } else {
                         runOnUiThread {
-                            Toast.makeText(
-                                this@CreatePlantStartActivity,
-                                "서버 오류: ${response.message}",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(this@CreatePlantStartActivity, "서버초코오류: ${response.message}", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
             })
-        } else {
-            Toast.makeText(this, "이미지 압축에 실패했습니다.", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            runOnUiThread {
+                Toast.makeText(this, "이미지 처리 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
-    // 이미지 압축 함수
-    private fun compressImageToByteArray(uri: Uri, maxSize: Int): ByteArray? {
-        return try {
-            val inputStream = contentResolver.openInputStream(uri)
-            val originalBitmap = BitmapFactory.decodeStream(inputStream)
-
-            val outputStream = ByteArrayOutputStream()
-            var quality = 90 // 초기 압축 품질
-            var byteArray: ByteArray
-
-            do {
-                outputStream.reset()
-                originalBitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
-                byteArray = outputStream.toByteArray()
-                quality -= 10 // 압축 품질을 10씩 감소
-            } while (byteArray.size > maxSize && quality > 10)
-
-            outputStream.close()
-            byteArray
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
+    private fun moveToDetailPlantActivity(name: String, status: String, remedy: String, imageUrl: String) {
+        val intent = Intent(this, DetailPlantActivity::class.java).apply {
+            putExtra("plantName", name)
+            putExtra("plantStatus", status)
+            putExtra("plantRemedy", remedy)
+            putExtra("plantImageUrl", imageUrl)
         }
+        startActivity(intent)
+        finish()
+    }
+
+
+    // 서버 메시지 처리 함수
+    private fun handleServerMessage(message: String, responseBody: String) {
+        when (message) {
+            "식물을 등록하시겠습니까?" -> showRegistrationDialog(responseBody)
+            else -> showWarningDialog(message)
+        }
+    }
+
+    private fun showWarningDialog(message: String) {
+        AlertDialog.Builder(this)
+            .setMessage(message)
+            .setPositiveButton("확인") { dialog, _ ->
+                dialog.dismiss() // 다이얼로그를 닫습니다
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    // 등록 다이얼로그 표시
+    private fun showRegistrationDialog(responseBody: String) {
+        AlertDialog.Builder(this)
+            .setTitle("등록 확인")
+            .setMessage("서버에서 반환된 메시지: $responseBody\n등록하시겠습니까?")
+            .setPositiveButton("등록") { _, _ ->
+                Toast.makeText(this, "식물이 등록되었습니다.", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("취소", null)
+            .show()
     }
 }

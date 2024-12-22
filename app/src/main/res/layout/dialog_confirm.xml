@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/round_dialog"
+    android:gravity="center"
+    android:minWidth="315dp"
+    android:orientation="vertical"
+    android:padding="30dp">
+
+    <TextView
+        android:id="@+id/dialog_title_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/main_text"
+        tools:text="확인 타이틀"/>
+
+    <TextView
+        android:id="@+id/dialog_desc_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="@color/main_text"
+        tools:text="확인 설명 메시지"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/dialog_no_btn"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:layout_marginRight="20dp"
+            android:text="취소"
+            android:textStyle="bold"
+            style="@style/dialog_cancel_button"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/dialog_yes_btn"
+            android:layout_width="0dp"
+            android:layout_marginLeft="10dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            android:textStyle="bold"
+            android:text="확인"
+            style="@style/dialog_check_button"/>
+
+    </LinearLayout>
+
+</LinearLayout>

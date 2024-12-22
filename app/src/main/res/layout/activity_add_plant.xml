@@ -11,7 +11,6 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-       
         android:scrollbars="none">
 
         <LinearLayout
@@ -19,6 +18,7 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:gravity="center">
+
 
             <!-- ImageView (식물 이미지) -->
 
@@ -42,149 +42,304 @@
                 android:layout_marginEnd="40dp"
                 android:orientation="vertical">
 
+
+
+                <LinearLayout
+                    android:id="@+id/planNicknameContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="40dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/plantNicknameTitleTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:text="식물 애칭"
+                        android:textColor="@color/main_text"
+                        android:textSize="21sp"
+                        android:textStyle="bold" />
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <EditText
+                            android:id="@+id/plantNicknameEditText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:background="@color/main_text"
+                            android:layout_marginEnd="8dp"
+                            android:ellipsize="none"
+                            android:hint="식물의 애칭을 정해주세요~"
+                            android:inputType="text"
+                            android:maxLength="200"
+                            android:maxLines="1"
+                            android:padding="15dp"
+                            android:scrollHorizontally="true"
+                            android:textColor="@color/blackText"
+                            android:textSize="18sp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/nicknameEditButton"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent" />
+
+                        <ImageButton
+                            android:id="@+id/nicknameEditButton"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="@color/button"
+                            android:contentDescription="@string/plantNickname_Edit"
+                            app:srcCompat="@drawable/ic_edit"
+                            android:layout_marginLeft="3dp"
+                            android:padding="20dp"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            android:layout_marginStart="80dp" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </LinearLayout>
+
                 <LinearLayout
                     android:id="@+id/plantSearchContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:orientation="horizontal">
+                    android:layout_marginTop="60dp"
+                    android:orientation="vertical">
 
-                    <FrameLayout
+                    <TextView
+                        android:id="@+id/plantSearchTextViewTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|left"
+                        android:layout_marginBottom="12dp"
+                        android:text="식물 종"
+                        android:textColor="@color/main_text"
+                        android:textSize="21sp"
+                        android:textStyle="bold"/>
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+
+                        <TextView
+                            android:id="@+id/plantSearchView"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:background="@color/main_text"
+                            android:layout_marginEnd="8dp"
+                            android:ellipsize="none"
+                            android:inputType="text"
+                            android:text="우하하"
+                            android:padding="15dp"
+                            android:scrollHorizontally="true"
+                            android:textColor="@color/blackText"
+                            android:textSize="18sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/SearchEditButton"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <ImageButton
+                            android:id="@+id/SearchEditButton"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="@color/button"
+                            android:contentDescription="@string/plantNickname_Edit"
+                            app:srcCompat="@drawable/ic_edit"
+                            android:layout_marginLeft="3dp"
+                            android:padding="20dp"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            android:layout_marginStart="80dp" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- 수정 가능 상태 (초기에는 숨김) -->
+                    <EditText
+                        android:id="@+id/plantSearchEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="15dp"
+                        android:background="@color/main_text"
+                        android:textColor="@color/blackText"
+                        android:textSize="18sp"
+                        android:hint="수정할 값을 입력하세요"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+
+                <!-- 식물 관리 방법 필드 -->
+                <LinearLayout
+                    android:id="@+id/plantContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="60dp"
+                    android:orientation="vertical">
+
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <!-- 관리 방법 제목 -->
+                        <TextView
+                            android:id="@+id/plantRemedyTextViewTitel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="12dp"
+
+                            android:text="관리 방법"
+                            android:textColor="@color/main_text"
+                            android:textSize="21sp"
+                            android:textStyle="bold"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true" />
+
+                        <!-- 수정 버튼 -->
+                        <ImageButton
+                            android:id="@+id/RemedyEditButton"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="@color/button"
+                            android:layout_marginBottom="15dp"
+                            android:contentDescription="@string/plantNickname_Edit"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            app:srcCompat="@drawable/ic_edit" />
+
+                    </RelativeLayout>
+
+
+                    <!-- 수정 버튼 -->
+
+
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
                         <TextView
-                            android:id="@+id/plantSearchTextView"
-                            android:layout_width="wrap_content"
+                            android:id="@+id/plantRemedyText"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="top|left"
-                            android:layout_marginBottom="70dp"
-                            android:layout_marginLeft="8dp"
-                            android:text="식물 종"
-                            android:textColor="@color/main_text"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-
-                        <TextView
-                            android:id="@+id/plantSearchView"
-                            android:layout_marginTop="25dp"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingLeft="8dp"
-                            android:padding="15dp"
-                            android:maxLength="200" 
-                            android:maxLines="5" 
-                            android:scrollHorizontally="false"
+                            android:background="@color/main_text"
                             android:ellipsize="none"
-                            android:singleLine="false"
-                            android:background="@color/main_text"
+                            android:text="우하하"
+                            android:padding="15dp"
                             android:textColor="@color/blackText"
                             android:textSize="18sp"
-                            android:contentDescription="식물의 종을 나타냅니다."
-                            android:layout_gravity="center"
-                            app:layout_constraintTop_toBottomOf="@+id/plantSearchTextView"/>
-                    </FrameLayout>
-                </LinearLayout>
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent" />
 
 
-                <!-- 식물 닉네임 필드 -->
-                <LinearLayout
-                    android:id="@+id/plantNicknameContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:orientation="horizontal">
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
-                    <FrameLayout
+
+                    <!-- 수정 가능 상태 (초기에는 숨김) -->
+                    <EditText
+                        android:id="@+id/plantRemedyEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="40dp">
-
-                        <TextView
-                            android:id="@+id/plantNicknameTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="top|left"
-                            android:layout_marginBottom="70dp"
-                            android:layout_marginLeft="8dp"
-                            android:text="관리 방법"
-                            android:textColor="@color/main_text"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-
-                        <TextView
-                            android:id="@+id/plantNicknameEditText"
-                            android:layout_marginTop="25dp"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingLeft="8dp"
-                            android:padding="15dp"
-                            android:maxLength="20"
-                            android:inputType="text"
-                            android:background="@color/main_text"
-                            android:textColor="@color/blackText"
-                            android:textSize="18sp"
-                            android:layout_gravity="center" 
-                        android:contentDescription="식물의 관리 방법을 나타냅니다." 
-                            app:layout_constraintTop_toBottomOf="@+id/plantNicknameTextView"/>
-                    </FrameLayout>
+                        android:padding="15dp"
+                        android:background="@color/main_text"
+                        android:textColor="@color/blackText"
+                        android:textSize="18sp"
+                        android:hint="수정할 값을 입력하세요"
+                        android:visibility="gone" />
                 </LinearLayout>
 
-                <!-- 식물 닉네임 필드 -->
+
                 <LinearLayout
-                    android:id="@+id/plantStatusContainer"
+                    android:id="@+id/DateContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:orientation="horizontal">
+                    android:layout_marginTop="40dp"
+                    android:orientation="vertical">
 
-                    <FrameLayout
+                    <TextView
+                        android:id="@+id/dateTextViewTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|left"
+                        android:layout_marginBottom="12dp"
+                        android:text="주기 설정"
+                        android:textColor="@color/main_text"
+                        android:textSize="20sp"
+                        android:textStyle="bold"/>
+
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="40dp">
+                        android:layout_marginTop="8dp">
 
-                        <TextView
-                            android:id="@+id/plantStatusTextView"
+                        <!-- EditText (주기 입력) -->
+                        <EditText
+                            android:id="@+id/dateEditText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="top|left"
-                            android:layout_marginBottom="70dp"
-                            android:layout_marginLeft="8dp"
-                            android:text="현재 상황"
-                            android:textColor="@color/main_text"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-
-                        <TextView
-                            android:id="@+id/plantStatusText"
-                            android:layout_marginTop="25dp"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:paddingLeft="8dp"
-                            android:padding="15dp"
-                            android:maxLength="20"
-                            android:inputType="text"
                             android:background="@color/main_text"
-                            android:textColor="@color/blackText"
+                            android:padding="15dp"
+                            android:scrollHorizontally="true"
                             android:textSize="18sp"
-                            android:layout_gravity="center"
-                        android:contentDescription="현재 식물의 상태를 나타냅니다" 
-                            app:layout_constraintTop_toBottomOf="@+id/plantStatusTextView"/>
-                    </FrameLayout>
+                            android:inputType="number"
+                            android:maxLength="3"
+                            android:hint="주기"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/dateTextView"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent" />
+
+                        <!-- TextView (일) -->
+                        <TextView
+                            android:id="@+id/dateTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="일"
+                            android:textColor="@color/main_text"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:layout_marginStart="20dp"
+                            app:layout_constraintStart_toEndOf="@+id/dateEditText"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
                 </LinearLayout>
 
-                
-                <LinearLayout
-                    android:id="@+id/LastWaterContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:orientation="horizontal">
 
-
-                </LinearLayout>
 
             </LinearLayout>
+
+
+            <Button
+                android:id="@+id/addButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="50dp"
+                android:layout_marginEnd="50dp"
+                android:layout_marginTop="40dp"
+                android:layout_marginBottom="40dp"
+                android:gravity="center"
+                android:backgroundTint="@color/button"
+                android:text="확인"
+                android:textColor="@color/blackText"
+                android:textSize="20sp"
+                android:padding="15dp"
+                android:textStyle="bold" />
+
+
+
+
 
 
         </LinearLayout>
@@ -194,6 +349,3 @@
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
-<!-- 닉네임(애칭) 입력창 오른쪽 끝부분에 입력한 텍스트를 한번에 지우는 버튼이 필요할듯
-닉네임이 중복되는 경우도 허용하는지?.....
--->

@@ -47,6 +47,7 @@
             android:id="@+id/plantListView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:scrollbars="vertical"
             android:contentDescription="최근 촬영된 식물의 목록입니다. 항목을 선택하여 자세히 알아보세요." />
     </LinearLayout>
 

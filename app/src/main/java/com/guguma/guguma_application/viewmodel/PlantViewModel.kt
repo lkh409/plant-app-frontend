@@ -30,6 +30,7 @@ class PlantViewModel(private val userId: String) : ViewModel() {
     fun addPlant(plant: PlantDto) {
         val currentList = _plantList.value ?: mutableListOf()
         currentList.add(plant) // 새로운 식물 추가
+        Log.d("PlantViewModel", "Updated Plant 슈퍼노바: $currentList") // 로그 추가
         _plantList.postValue(currentList) // LiveData 업데이트
     }
 

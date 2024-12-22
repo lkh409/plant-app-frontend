@@ -31,14 +31,16 @@ android {
         }
 
         // 기본 URL 및 엔드포인트를 BuildConfig에 추가
-        val detectPath = localProperties.getProperty("api.plant.detect")
+        val detectPath = localProperties.getProperty("api.plant.detect", "http://54.180.230.131:5000/detect")
         val baseUrl = localProperties.getProperty("api.key.aws.base", "http://localhost:8080/api")
+
 
         buildConfigField("String", "BASE_URL", "\"${baseUrl}\"")
         buildConfigField("String", "API_PLANT_DETECT", "\"$detectPath\"") // 식물 위치인식(aws에 따로 서버)
         buildConfigField("String", "API_PLANT_LIST_TEMPLATE", "\"$baseUrl/plants/user/{userUuid}\"") // 식물 리스트 불러오기
-        buildConfigField("String", "API_CAMERA_STATUS", "\"$baseUrl/camera/status\"") // 이미지촬영정보 백엔드 저장
+        buildConfigField("String", "API_CAMERA_STATUS", "\"$baseUrl/camera\"") // 이미지촬영정보 백엔드 저장
         buildConfigField("String", "API_PLANT_DETAIL", "\"$baseUrl/plants/{id}\"") // 식물 정보디테일
+        buildConfigField("String", "API_PLANT_UPLOAD", "\"$baseUrl/plants/create\"") //
     }
 
     buildFeatures {

@@ -3,6 +3,7 @@ package com.guguma.guguma_application
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,7 +34,7 @@ class PlantAdapter(
         val plantImageView: ImageView = itemView.findViewById(R.id.plantImageView)
 
         fun bind(plant: PlantDto) {
-            plantNameTextView.text = plant.name
+            plantNameTextView.text = plant.nickname
             Glide.with(context).load(plant.imageUrl).into(plantImageView)
         }
     }
@@ -47,19 +48,20 @@ class PlantAdapter(
         val plant = plantList[position]
         holder.bind(plant)
 
+        //체크박스가 사라지면서,, 이건 아마도 필요가 없을 것,..오류나 안 나게,, 살아야겠네요.....
         // 클릭 이벤트: 상세 화면 이동 또는 체크박스 상태 변경
         holder.itemView.setOnClickListener {
             val intent = Intent(context, DetailPlantActivity::class.java).apply {
-                putExtra("plantName", plant.name)
+                putExtra("plantName", plant.nickname)
                 putExtra("plantImageUrl", plant.imageUrl)
             }
             context.startActivity(intent)
         }
     }
 
-    // getItemCount: 아이템 총 개수 반환 (최대 10개만)
+    // getItemCount: 아이템 총 개수 반환 (최대 10개만 반환)
     override fun getItemCount(): Int {
-        return if (plantList.size > 10) 10 else plantList.size // 최대 10개만 반환
+        return if (plantList.size > 10) 10 else plantList.size
     }
 
     // 특정 위치의 데이터를 가져오는 getItem 메서드
@@ -69,6 +71,7 @@ class PlantAdapter(
 
     // 데이터 업데이트 메서드
     fun updateData(newPlantList: List<PlantDto>) {
+        Log.d("PlantAdapter", "Updating Adapter 에스파: $newPlantList")
         plantList.clear()
         plantList.addAll(newPlantList)
         notifyDataSetChanged() // 데이터 변경 후 UI 갱신

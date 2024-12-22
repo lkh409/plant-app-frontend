@@ -9,5 +9,8 @@
     <color name="button">#04CD7F</color>
     <color name="blackText">#1A1A1A</color>
     <color name="gray">#808080</color>
+    <color name="dialog">#17171C</color>
+    <color name="dialog_btn">#2C2D33</color>
+    <color name="dialog_calcel_btn">#FE6B6B</color>
 
 </resources>

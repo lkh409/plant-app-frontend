@@ -24,8 +24,8 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
 
-                R.id.nav_camera -> {
-                    val intent = Intent(this, CameraActivity::class.java)  // CameraActivity 실행
+                R.id.nav_AddPlant -> {
+                    val intent = Intent(this, CreatePlantStartActivity::class.java)  // CameraActivity 실행
                     startActivity(intent)
                     true
                 }
